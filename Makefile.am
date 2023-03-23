@@ -1,2 +1,2 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = src examples tools fpbench
+SUBDIRS = src examples tools

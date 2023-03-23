@@ -1,2 +1,2 @@
 
-SUBDIRS = balanced-reduction imbalanced-reduction kahan-sum rigidBody1 
+SUBDIRS = balanced-reduction
