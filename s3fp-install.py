@@ -28,7 +28,7 @@ elif (OPT == "clean"):
     rm_makefile.wait()
     for aline in rm_makefile.stdout: 
         aline = aline.strip().decode("utf-8")
-        if (aline.endswith("Makefile")):
+        if (aline.endswith("Makefile") and not "fpbench" in aline):
             os.system("rm " + aline) 
 
 else:
