@@ -11,21 +11,28 @@
 #include "benchmarks.h"
 
 #ifdef CUDA_COMPILE
+__device__ double ret;
+
 __global__
+#else
+double ret;
 #endif
 // modify parameter here
 void compute(double var_1) {//, double var_2, double var_3) {
   // modify function + parameter here
   double comp = nmse_334(var_1);//, var_2, var_3);
-  printf("%.17g\n", comp);
+  ret = comp;
 }
 
 int main(int argc, char** argv) {
 /* Program variables */
+  char *iname = argv[1]; 
+  char *oname = argv[2]; 
+    
+  FILE *ifile = fopen(iname, "r"); 
+  FILE *ofile = fopen(oname, "w"); 
 
-  double tmp_1 = atof(argv[1]);
-  //double tmp_2 = atof(argv[2]);
-  //double tmp_3 = atof(argv[3]);
+  double tmp_1; fread(&tmp_1, sizeof(double), 1, ifile);
 
   compute
   #ifdef CUDA_COMPILE
@@ -36,6 +43,11 @@ int main(int argc, char** argv) {
   #ifdef CUDA_COMPILE
   cudaDeviceSynchronize();
   #endif
+
+  fwrite(&ret, sizeof(double), 1, ofile);
+
+  fclose(ifile);
+  fclose(ofile);
 
   return 0;
 }
