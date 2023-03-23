@@ -25,8 +25,9 @@ elif (OPT == "clean"):
     os.system("rm -rf autom4te.cache") 
 
     rm_makefile = subp.Popen("find ./ -type f -name \"Makefile\"", shell=True, stdout=subp.PIPE, stderr=subp.PIPE)
+    rm_makefile.wait()
     for aline in rm_makefile.stdout: 
-        aline = aline.strip()
+        aline = aline.strip().decode("utf-8")
         if (aline.endswith("Makefile")):
             os.system("rm " + aline) 
 
