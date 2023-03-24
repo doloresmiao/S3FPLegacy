@@ -1,1 +1,1 @@
-rm test_*
+rm test_* best_* output_* random_input
