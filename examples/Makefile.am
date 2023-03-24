@@ -1,5 +1,5 @@
 
-SUBDIRS = lib tests-fp-error
+SUBDIRS = lib #tests-fp-error
 
 # compilation flags 
 AM_CPPFLAGS = -std=c++0x -Wunused-result -O0

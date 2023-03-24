@@ -44,7 +44,7 @@ extern "C" {
 Some S3FP Settings 
 */ 
 #ifndef INPUTV_TYPE 
-#define INPUTV_TYPE float
+#define INPUTV_TYPE double
 #endif 
 
 #ifdef S3FP_DDIO 

@@ -960,5 +960,66 @@ TFP makeIEEEFPfromStrings (string ssign, string smant, string sexpo) {
   }
 }
 
+typedef union
+{
+  float f;
+  struct
+  {
+    unsigned int mantissa : 23;
+    unsigned int exponent : 8;
+    unsigned int sign : 1;
+  } parts;
+} float_cast;
+
+typedef union
+{
+  double f;
+  struct
+  {
+    unsigned long long mantissa : 52;
+    unsigned long long exponent : 11;
+    unsigned long long sign : 1;
+  } parts;
+} double_cast;
+
+long long dist_float(float i1, float i2)
+{
+  float_cast i1_union, i2_union;
+  memcpy(&i1_union.f, &i1, sizeof(float));
+  memcpy(&i2_union.f, &i2, sizeof(float));
+  bool diffSign = i1_union.parts.sign != i2_union.parts.sign;
+  i1_union.parts.sign = 0;
+  i2_union.parts.sign = 0;
+  long long ii1 = *(int *)&i1_union;
+  long long ii2 = *(int *)&i2_union;
+  if (diffSign)
+  {
+    return ii1 + ii2;
+  }
+  else
+  {
+    return ii1 - ii2;
+  }
+}
+
+long long dist_double(double i1, double i2)
+{
+  double_cast i1_union, i2_union;
+  memcpy(&i1_union.f, &i1, sizeof(double));
+  memcpy(&i2_union.f, &i2, sizeof(double));
+  bool diffSign = i1_union.parts.sign != i2_union.parts.sign;
+  i1_union.parts.sign = 0;
+  i2_union.parts.sign = 0;
+  long long ii1 = *(long long *)&i1_union;
+  long long ii2 = *(long long *)&i2_union;
+  if (diffSign)
+  {
+    return ii1 + ii2;
+  }
+  else
+  {
+    return ii1 - ii2;
+  }
+}
 
 #endif // #ifndef S3FP_FP_UTILS 

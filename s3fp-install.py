@@ -31,5 +31,18 @@ elif (OPT == "clean"):
         if (aline.endswith("Makefile") and not "fpbench" in aline):
             os.system("rm " + aline) 
 
+    rm_makefile = subp.Popen("find ./ -type f -name \"Makefile.in\"", shell=True, stdout=subp.PIPE, stderr=subp.PIPE)
+    rm_makefile.wait()
+    for aline in rm_makefile.stdout: 
+        aline = aline.strip().decode("utf-8")
+        if (aline.endswith("Makefile.in") and not "fpbench" in aline):
+            os.system("rm " + aline)          
+
+    rm_makefile = subp.Popen("find ./ -type f -name \"*.Po\"", shell=True, stdout=subp.PIPE, stderr=subp.PIPE)
+    rm_makefile.wait()
+    for aline in rm_makefile.stdout: 
+        aline = aline.strip().decode("utf-8")
+        os.system("rm " + aline)                         
+
 else:
     sys.exit("ERROR: invalid option: " + OPT) 

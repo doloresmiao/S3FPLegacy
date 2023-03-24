@@ -1,4 +1,5 @@
 #include "S3FP_ErrorOptimization.h" 
+#include "FP_UTILS.h"
 #include <math.h>
 #include <vector> 
 
@@ -72,7 +73,16 @@ Erropt_LastValue (vector<HFP_TYPE> lp_outputs,
 
   HFP_TYPE ret = 0.0; 
 
-  switch (err_func) {
+  // hijack for distance
+  INPUTV_TYPE dlpv = (INPUTV_TYPE)lpv;
+  INPUTV_TYPE dhpv = (INPUTV_TYPE)hpv;
+
+  if (sizeof(INPUTV_TYPE) == 4)
+    ret = log2(abs((double)(dist_float(dlpv, dhpv)) + 1.0));
+  else
+    ret = log2(abs((double)(dist_double(dlpv, dhpv)) + 1.0));
+
+  /*switch (err_func) {
   case REL_ERR_FUNC: 
     ret = Errfun_RelativeError(lpv, hpv, 
 				rel_padding); 
@@ -97,7 +107,7 @@ Erropt_LastValue (vector<HFP_TYPE> lp_outputs,
   default:
     assert(false && "Error: Invalid Error Function"); 
     break; 
-  }
+  }*/
 
   return Erropt_ErrorFilter(ret); 
 }

@@ -241,11 +241,14 @@ private:
     assert(n_inputs % sizeof(INPUTV_TYPE) == 0);
     n_inputs = n_inputs / sizeof(INPUTV_TYPE);
     fseek(infile, 0, SEEK_SET);
+    cout << "best input " << ub_or_lb << " ";
     for (unsigned int ii = 0 ; ii < n_inputs ; ii++) {
       INPUTV_TYPE this_input;
       fread(&this_input, sizeof(INPUTV_TYPE), 1, infile);
       best_input.push_back(this_input);
+      printf("%.17g ", this_input);
     }
+    cout << endl;
     fclose(infile);
   } 
 }; 

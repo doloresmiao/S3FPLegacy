@@ -132,7 +132,13 @@ int main (int argc, char *argv[]) {
   }
 
   // -- initialize some more global variables --
-  srand(RSEED);
+  if (RSEED == 0) {
+    unsigned int t = time(0);
+    cout << "seed " << t << endl;
+    srand(t);
+  }
+  else
+    srand(RSEED);
   startTimer(&TSTART);
   HALT_NOW = false;
 
@@ -589,12 +595,13 @@ UpdateRTReport (EvaluationBasis eva_basis,
   vector<HFP_TYPE> err_est_vals_list[Config_Total];
   vector<HFP_TYPE> div_est_vals_list[Config_Total];
 
-  for (int i = 0; i < Config_Total; i++)
+  for (int i = 0; i < Config_Total; i++) {
     ExtractEEstSigValues(vList[i], err_est_vals_list[i], div_est_vals_list[i]); 
+  }
 
   ret_fperr = 0.0;
   for (int i = 0; i < Config_Total - 1; i++) {
-    for (int j = i + 1; i < Config_Total; j++) {
+    for (int j = i + 1; j < Config_Total; j++) {
       Erropt_CalculateError (err_est_vals_list[i], err_est_vals_list[j], 
           ERR_OPT, 
           ERR_FUNC, 
@@ -603,6 +610,7 @@ UpdateRTReport (EvaluationBasis eva_basis,
 
       assert(fperrs.size() == 1); 
       ret_fperr = ret_fperr < fperrs[0] ? fperrs[0] : ret_fperr; 
+      fperrs.clear();
     }
   }
   
