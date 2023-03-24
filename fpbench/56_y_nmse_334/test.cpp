@@ -44,7 +44,8 @@ int main(int argc, char** argv) {
   cudaDeviceSynchronize();
   #endif
 
-  fwrite(&ret, sizeof(double), 1, ofile);
+  __float128 ret128 = ret;
+  fwrite(&ret128, sizeof(__float128), 1, ofile);
 
   fclose(ifile);
   fclose(ofile);

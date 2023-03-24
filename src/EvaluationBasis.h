@@ -54,6 +54,31 @@ void ExtractEEstSigValues (vector<HFP_TYPE> poutputs,
 }
 
 
+enum Compiler {
+  GCC,
+  CLANG,
+  NVCC,
+  COMPILERTOTAL
+};
+
+static string CompilerName[] = {
+  "gcc",
+  "clang",
+  "nvcc"
+};
+
+enum Opt {
+  LEVEL0,
+  LEVEL3F,
+  OPTTOTAL
+};
+
+static string OptName[] = {
+  "0",
+  "3"
+};
+
+const int Config_Total = Compiler::COMPILERTOTAL * Opt::OPTTOTAL;
 
 /**
  * A class which runs external programs
@@ -67,6 +92,9 @@ class EvaluationBasis {
   string outnameHP;
   string inputname;
   unsigned int n_input_repeats; 
+
+  string exeList[Config_Total];
+  string outnameList[Config_Total];
 
   string rtIOName(const string &prefix, unsigned int pid, unsigned int tid) const {
     stringstream rtss;
@@ -126,6 +154,8 @@ class EvaluationBasis {
 		   const string &in_exeHP, 
 		   const string &in_outnameHP, 
 		   const string &in_inputname,
+       const string in_exeList[Config_Total],
+       const string in_outnameList[Config_Total],
 		   unsigned int in_n_input_repeats) {
     assert (in_n_input_repeats >= 1);
 
@@ -136,6 +166,11 @@ class EvaluationBasis {
     outnameHP = in_outnameHP;
     inputname = in_inputname;
     n_input_repeats = in_n_input_repeats;
+
+    for (int i = 0; i < Config_Total; i++) {
+      exeList[i] = in_exeList[i];
+      outnameList[i] = in_outnameList[i];
+    }
   }
 
   EvaluationBasis &operator = (const EvaluationBasis &rhs) {
@@ -147,6 +182,11 @@ class EvaluationBasis {
     outnameHP = rhs.outnameHP;
     inputname = rhs.inputname;
     n_input_repeats = rhs.n_input_repeats;
+
+    for (int i = 0; i < Config_Total; i++) {
+      exeList[i] = rhs.exeList[i];
+      outnameList[i] = rhs.outnameList[i];
+    }
 
     return *this;
   }
@@ -216,6 +256,12 @@ class EvaluationBasis {
     ExtractEEstSigValues (output, err, sig); 
   }
 
+  void runOne (int *error,
+    vector<HFP_TYPE> &outputs, int index) const {
+      runEXE(error, 
+        outputs, 
+        exeList[index], inputname, outnameList[index]);
+  }
 
   void prepareInput (const CONF &conf, 
 		     ENUM_RANDOM_FUNC rfunc = NAIVE_RANDOM_FUNC, 

@@ -106,12 +106,24 @@ int main (int argc, char *argv[]) {
 
   cout << "=====================================" << endl;
 
+  // preset filename
+  string exe_names[Config_Total];
+  string out_names[Config_Total];
+  for (int i = 0; i < Compiler::COMPILERTOTAL; i++) {
+    for (int j = 0; j < Opt::OPTTOTAL; j++) {
+      exe_names[i * Opt::OPTTOTAL + j] = "test_" + CompilerName[i] + "_" + OptName[j];
+      out_names[i * Opt::OPTTOTAL + j] = "output_" + CompilerName[i] + "_" + OptName[j];
+    }
+  }
+
   // ---- initialize evaluation basis ----
   EvaluationBasis eva_basis (N_VARS, 
 			     EXE_LP_NAME, OUTPUT_LP_NAME, 
 			     EXE_HP_NAME, OUTPUT_HP_NAME, 
 			     INPUT_FILE_NAME, 
-			     N_INPUT_REPEATS);
+           exe_names, out_names,           
+			     N_INPUT_REPEATS
+           );
 
   // ---- open unstable error report (file) ----
   if (CHECK_UNSTABLE_ERROR) {
@@ -564,6 +576,72 @@ UpdateRTReport (EvaluationBasis eva_basis,
   return false;
 }
 
+bool 
+UpdateRTReport (EvaluationBasis eva_basis, 
+		vector<HFP_TYPE> vList[Config_Total],
+		const char *input_filename, 
+		HFP_TYPE &ret_fperr) { 
+  vector<HFP_TYPE> fperrs; 
+  unsigned int n_outputs = vList[0].size();
+
+  if (CHECK_UNSTABLE_ERROR && HALT_NOW) return false;
+
+  vector<HFP_TYPE> err_est_vals_list[Config_Total];
+  vector<HFP_TYPE> div_est_vals_list[Config_Total];
+
+  for (int i = 0; i < Config_Total; i++)
+    ExtractEEstSigValues(vList[i], err_est_vals_list[i], div_est_vals_list[i]); 
+
+  ret_fperr = 0.0;
+  for (int i = 0; i < Config_Total - 1; i++) {
+    for (int j = i + 1; i < Config_Total; j++) {
+      Erropt_CalculateError (err_est_vals_list[i], err_est_vals_list[j], 
+          ERR_OPT, 
+          ERR_FUNC, 
+          REL_DELTA, 
+          fperrs); 
+
+      assert(fperrs.size() == 1); 
+      ret_fperr = ret_fperr < fperrs[0] ? fperrs[0] : ret_fperr; 
+    }
+  }
+  
+#ifdef S3FP_VERBOSE 
+  cout << "LAST error = " << (CONSOLE_OUTPUT_TYPE) ret_fperr << endl; 
+#endif 
+
+  // If we decide to check unstable error, 
+  // decide whether to halt now or not 
+  /*if (CHECK_UNSTABLE_ERROR) {
+    bool to_halt = IsDivergenceTriggered(lp_div_det_vals, 
+					 hp_div_det_vals, 
+					 DIFF_CON, 
+					 input_filename); 
+    if (to_halt) HALT_NOW = true; 
+  }*/
+
+  bool is_valid_fp = false;
+  is_valid_fp = isValidFP<HFP_TYPE>(ret_fperr);
+
+  if (is_valid_fp) {    
+    // cout << "vLP: " << (long double)vLP << "  vs  " << "vHP: " << (long double)vHP << endl;
+    N_VALID_RTS++; 
+    local_best.addError(ret_fperr, input_filename); 
+    bool beat_global_best_conf = GLOBAL_BEST.addError(ret_fperr, input_filename); 
+    if (beat_global_best_conf) {
+      cout << "Update Global: " << (CONSOLE_OUTPUT_TYPE) ret_fperr << endl;
+    }
+
+    // calculate statistical data
+    // ERROR_SUM += fperr; 
+    ERROR_SUM += (ret_fperr >= 0 ? ret_fperr : ((-1)*ret_fperr)); 
+    ERROR_SUM_2 += (ret_fperr * ret_fperr);
+
+    return beat_global_best_conf;      
+  }
+
+  return false;
+}
 
 // return the local best result
 // WARNING: when N == 0 -> infinite number of tests!!
@@ -584,7 +662,45 @@ grtEvaluateCONF (EvaluationBasis eva_basis, unsigned int N, CONF conf) {
 			     RANDOM_FUNC, 
 			     false); 
 
-    vector<HFP_TYPE> vLPs;
+    {
+      vector<HFP_TYPE> vList[Config_Total];
+      vector<HFP_TYPE> this_vList[Config_Total];
+      int errList[Config_Total];
+      long int n_outputs_per_input_list[Config_Total];
+
+      for (int i = 0; i < Config_Total; i++) {
+        eva_basis.runOne(&errList[i], vList[i], i);
+        n_outputs_per_input_list[i] = vList[i].size() / eva_basis.getNInputRepeats();
+      }
+
+      for (unsigned int oi = 0; (oi < eva_basis.getNInputRepeats()) && (HALT_NOW == false); oi++) {
+        int totalErr = 0;
+        for (int i = 0; i < Config_Total; i++) {
+          this_vList[i].clear();
+          for (unsigned int jj = 0; jj < n_outputs_per_input_list[i]; jj++)
+            this_vList[i].push_back(vList[i][oi*n_outputs_per_input_list[i]+jj]);
+          totalErr = totalErr | errList[i];
+        }
+
+        HFP_TYPE ret_fperr; 
+        bool update_global_best_conf = false;     
+        if (totalErr == 0) {
+          update_global_best_conf = UpdateRTReport (eva_basis, 
+                this_vList,
+                eva_basis.getInputname().c_str(), 
+                ret_fperr); 
+        }        
+
+        string my_inputname = eva_basis.getInputname();
+              
+        if (update_global_best_conf) {
+          GLOBAL_BEST_CONF = conf;
+          N_GLOBAL_UPDATES++; 	
+        }
+      }      
+    }
+
+    /*vector<HFP_TYPE> vLPs;
     vector<HFP_TYPE> vHPs;
     int lpErr, hpErr;
 
@@ -626,7 +742,7 @@ grtEvaluateCONF (EvaluationBasis eva_basis, unsigned int N, CONF conf) {
 	GLOBAL_BEST_CONF = conf;
 	N_GLOBAL_UPDATES++; 	
       }
-    }
+    }*/
 
     // check is timeout 
     N_RTS += eva_basis.getNInputRepeats(); 
