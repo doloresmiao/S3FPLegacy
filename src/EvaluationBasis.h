@@ -128,7 +128,6 @@ class EvaluationBasis {
 	val = (HFP_TYPE) to_double(outv);
 #else 
 	fread(&val, sizeof(HFP_TYPE), 1, fp);
-  cout << "outname:" << outname << " value " << (double)val << std::endl;
 #endif 
 	ret.push_back(val);
       }
@@ -206,9 +205,7 @@ class EvaluationBasis {
     exe_para << "./" << exename << " " << inname << " " << outname; 
 
     stringstream run;
-    run << exe_para.str() ;//<< " 2>&1 > __outdump"; 
-
-    cout << "run arg:" << run.str() << std::endl;
+    run << exe_para.str() << " 2>&1 > __outdump"; 
 
     system(run.str().c_str());
 
