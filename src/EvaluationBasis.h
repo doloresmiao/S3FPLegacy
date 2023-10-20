@@ -55,16 +55,12 @@ void ExtractEEstSigValues (vector<HFP_TYPE> poutputs,
 
 
 enum Compiler {
-  GCC,
   CLANG,
-  NVCC,
   COMPILERTOTAL
 };
 
 static string CompilerName[] = {
-  "gcc",
   "clang",
-  "nvcc"
 };
 
 enum Opt {
@@ -132,6 +128,7 @@ class EvaluationBasis {
 	val = (HFP_TYPE) to_double(outv);
 #else 
 	fread(&val, sizeof(HFP_TYPE), 1, fp);
+  cout << "outname:" << outname << " value " << (double)val << std::endl;
 #endif 
 	ret.push_back(val);
       }
@@ -209,7 +206,9 @@ class EvaluationBasis {
     exe_para << "./" << exename << " " << inname << " " << outname; 
 
     stringstream run;
-    run << exe_para.str() << " 2>&1 > __outdump"; 
+    run << exe_para.str() ;//<< " 2>&1 > __outdump"; 
+
+    cout << "run arg:" << run.str() << std::endl;
 
     system(run.str().c_str());
 
